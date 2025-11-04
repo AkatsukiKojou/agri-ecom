@@ -1,0 +1,394 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Products;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use App\Models\Order;
+use App\Models\User;
+
+
+class CartController extends Controller
+{
+    // Show the shopping cart
+    public function index()
+    {
+        return view('user.cart.index');
+    }
+
+    // Add a product to the cart
+public function add(Request $request, $productId)
+{
+    $product = Products::findOrFail($productId);
+
+    $cart = session()->get('cart', []);
+    $quantity = (int) $request->input('quantity', 1);
+
+    // If product already in cart, add but limit to stock
+    if (isset($cart[$productId])) {
+        $newQty = $cart[$productId]['quantity'] + $quantity;
+        // Limit to available stock
+        $cart[$productId]['quantity'] = min($newQty, $product->stock_quantity);
+    } else {
+        // Limit to available stock
+        $cart[$productId] = [
+            'name' => $product->name,
+            'quantity' => min($quantity, $product->stock_quantity),
+            'price' => $product->price,
+            'image' => $product->image,
+            'stock' => $product->stock_quantity,
+        ];
+    }
+
+    session()->put('cart', $cart);
+
+    return back()->with('success', 'Product Successfully Added to cart!');
+}
+    // Remove a product from the cart
+    public function remove($productId)
+    {
+        $cart = session()->get('cart', []);
+
+        // Remove product from cart
+        if (isset($cart[$productId])) {
+            unset($cart[$productId]);
+            session()->put('cart', $cart);
+        }
+
+        return redirect()->route('cart.index')->with('success', 'Product removed from cart!');
+    }
+
+    // Update quantity of a product in the cart
+    public function update(Request $request, $productId)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+        ]);
+    
+        $cart = session()->get('cart', []);
+    
+        if (isset($cart[$productId])) {
+            $cart[$productId]['quantity'] = $request->quantity;
+            session()->put('cart', $cart);
+        }
+    
+        // Optionally, you can return the updated cart or success message
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart updated successfully!',
+            'cart' => $cart
+        ]);
+    }
+
+// public function review(Request $request)
+// {
+//     $selectedProductIds = $request->input('selected_products', []);
+//     $quantities = $request->input('quantities', []);
+//     $cart = session('cart', []);
+
+//     $selectedItems = [];
+//     $total = 0;
+//     $totalWeight = 0;
+//     $shippingFee = 0;
+
+//     $user = Auth::user();
+//     $userLat = $user->latitude;
+//     $userLng = $user->longitude;
+
+//     // STOCK CHECK
+//     foreach ($selectedProductIds as $productId) {
+//         if (isset($cart[$productId])) {
+//             $newQuantity = isset($quantities[$productId]) ? (int)$quantities[$productId] : $cart[$productId]['quantity'];
+//             $stock = isset($cart[$productId]['stock']) ? (int)$cart[$productId]['stock'] : 999999;
+//             if ($newQuantity > $stock) {
+//                 return redirect()->route('cart.index')->with('error', 'One or more products exceed available stock.');
+//             }
+//             $cart[$productId]['quantity'] = $newQuantity;
+
+//             $selectedItems[$productId] = $cart[$productId];
+//             $total += $cart[$productId]['price'] * $newQuantity;
+
+//             $product = \App\Models\Products::find($productId);
+//             if ($product) {
+//                 $weight = $product->weight * $newQuantity;
+//                 $totalWeight += $weight;
+//                 $distance = $this->calculateDistance($userLat, $userLng, $product->latitude, $product->longitude);
+//                 $baseFee = 50;
+//                 $perKm = 10;
+//                 $perKg = 20;
+//                 $shippingFee += $baseFee + ($distance * $perKm) + ($weight * $perKg);
+//             }
+//         }
+//     }
+
+//     session()->put('cart', $cart);
+
+//     return view('user.cart.review', [
+//         'selectedItems' => $selectedItems,
+//         'total' => $total,
+//         'shippingFee' => $shippingFee,
+//         'totalWeight' => $totalWeight,
+//     ]);
+// }
+// // Add this helper function in the same controller
+// public function calculateDistance($lat1, $lon1, $lat2, $lon2)
+// {
+//     $earthRadius = 6371; // km
+//     $latFrom = deg2rad($lat1);
+//     $lonFrom = deg2rad($lon1);
+//     $latTo = deg2rad($lat2);
+//     $lonTo = deg2rad($lon2);
+
+//     $latDelta = $latTo - $latFrom;
+//     $lonDelta = $lonTo - $lonFrom;
+
+//     $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+//         cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+//     return $earthRadius * $angle;
+// }
+
+// ...existing code...
+
+public function review(Request $request)
+{
+    $cart = session('cart', []);
+    $selected = $request->input('selected_products', old('selected_products', []));
+    $user = Auth::user();
+
+    // Get default shipping address of user
+    $defaultAddress = $user->shippingAddresses()->where('is_default', true)->first();
+
+    if (!$defaultAddress) {
+        session()->flash('selected_products', $selected);
+        return back()->with('error', 'Please add a default shipping address before placing your order.');
+    }
+     // Auto-adjust quantities if they exceed stock
+    foreach ($selected as $productId) {
+        if (isset($cart[$productId])) {
+            $product = Products::find($productId);
+            $requestedQty = isset($quantities[$productId]) ? (int)$quantities[$productId] : $cart[$productId]['quantity'];
+            $stock = $product ? $product->stock_quantity : $cart[$productId]['stock'];
+            if ($requestedQty > $stock) {
+                $cart[$productId]['quantity'] = $stock; // auto-adjust to max stock
+            } else {
+                $cart[$productId]['quantity'] = $requestedQty;
+            }
+        }
+    }
+    session()->put('cart', $cart);
+
+    // Get admin profile (assuming admin address is in profile)
+    $admin = User::where('role', 'admin')->first();
+    $adminProfile = $admin->profile; // assuming you have a profile() relationship
+
+    $userFullAddress = implode(', ', array_filter([
+        $defaultAddress->barangay,
+        $defaultAddress->city,
+        $defaultAddress->province,
+        $defaultAddress->region
+    ]));
+    $adminFullAddress = implode(', ', array_filter([
+        $adminProfile->barangay,
+        $adminProfile->city,
+        $adminProfile->province,
+        $adminProfile->region
+    ]));
+
+    $userCoords = $this->getCoordinates($userFullAddress);
+    $adminCoords = $this->getCoordinates($adminFullAddress);
+
+    if (!$userCoords || !$adminCoords) {
+        return back()->with('error', 'Unable to get coordinates for shipping calculation. Please check your address.');
+    }
+
+    $distance = $this->computeDistance(
+        $userCoords['lat'], $userCoords['lng'],
+        $adminCoords['lat'], $adminCoords['lng']
+    );
+
+    // Shipping fee logic
+    $base_fee = 30;
+    $base_distance = 3;
+    $per_km_rate = 10;
+    $extra_item_fee = 5;
+
+    // Compute total and items
+    $total = 0;
+    $total_items = 0;
+    foreach ($selected as $productId) {
+        if (isset($cart[$productId])) {
+            $item = $cart[$productId];
+            $total += $item['price'] * $item['quantity'];
+            $total_items += $item['quantity'];
+        }
+    }
+
+    $extra_items = max(0, $total_items - 1);
+    $extra_distance = max(0, $distance - $base_distance);
+
+    $shipping_fee = $base_fee + ($extra_distance * $per_km_rate) + ($extra_items * $extra_item_fee);
+
+    return view('user.cart.review', compact(
+        'cart',
+        'selected',
+        'total',
+        'shipping_fee'
+    ));
+}
+
+// ...existing code...
+
+    /**
+     * Compute the distance between two coordinates using the Haversine formula.
+     */
+    protected function computeDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) ** 2 +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLng / 2) ** 2;
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
+    /**
+     * Get coordinates from OpenRouteService API.
+     */
+    protected function getCoordinates($address)
+    {
+        $apiKey = env('OPENROUTESERVICE_API_KEY');
+        $url = 'https://api.openrouteservice.org/geocode/search';
+
+        $response = Http::withHeaders([
+            'Authorization' => $apiKey,
+        ])->get($url, [
+            'text' => $address,
+            'size' => 1,
+        ]);
+
+        if ($response->successful() && isset($response['features'][0]['geometry']['coordinates'])) {
+            $coords = $response['features'][0]['geometry']['coordinates'];
+            return [
+                'lat' => $coords[1],
+                'lng' => $coords[0],
+            ];
+        }
+
+        return null;
+    }
+
+public function submit(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'address' => 'required|string',
+        'location' => 'required|string|max:255',
+        'contact' => 'required|string|max:50',
+        'shipping' => 'required|in:standard,express',
+        'payment' => 'required|in:cod,gcash,paypal',
+    ]);
+
+    $items = session('checkout_items', []);
+
+    // TODO: Save to orders table
+    // Example:
+    // Order::create([...]);
+
+    session()->forget('cart');
+    session()->forget('checkout_items');
+
+    return redirect()->route('admin.orders.index')->with('success', 'Order placed successfully!');
+}
+
+public function addToCart(Request $request, $id)
+{
+    $product = Products::findOrFail($id);
+    $cart = session()->get('cart', []);
+    $quantity = (int) $request->input('quantity', 1);
+
+    $currentQty = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+    $newQty = $currentQty + $quantity;
+
+    if ($newQty > $product->stock_quantity) {
+        return redirect()->route('cart.index')->with('error', 'Quantity exceeds available stock!');
+    }
+
+    if (isset($cart[$id])) {
+        $cart[$id]['quantity'] = $newQty;
+        $cart[$id]['stock'] = $product->stock_quantity;
+    } else {
+        $cart[$id] = [
+            "name" => $product->name,
+            "quantity" => $quantity,
+            "price" => $product->price,
+            "image" => $product->image,
+            "stock" => $product->stock_quantity
+        ];
+    }
+
+    session()->put('cart', $cart);
+
+    if ($request->expectsJson()) {
+        return response()->json(['success' => true]);
+    }
+
+    return redirect()->route('cart.index')->with('success', 'Product added to cart!');
+}
+
+
+public function buyNow(Request $request, $id)
+{
+    $product = Products::findOrFail($id);
+    $quantity = (int) $request->input('quantity', 1);
+    $cart = session()->get('cart', []);
+
+    $currentQty = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+    $newQty = $currentQty + $quantity;
+
+    if ($newQty > $product->stock_quantity) {
+        return redirect()->route('cart.index')->with('error', 'Quantity exceeds available stock!');
+    }
+
+    if (isset($cart[$id])) {
+        $cart[$id]['quantity'] = $newQty;
+        $cart[$id]['stock'] = $product->stock_quantity;
+    } else {
+        $cart[$id] = [
+            'name' => $product->name,
+            'price' => $product->price,
+            'image' => $product->image,
+            'quantity' => $quantity,
+            'stock' => $product->stock_quantity,
+        ];
+    }
+    session()->put('cart', $cart);
+
+    return redirect()->route('cart.index', ['selected' => $id])
+        ->with('success', 'Product added to cart! You can review or add more items before checkout.');
+}
+
+public function updateQuantity(Request $request)
+{
+    $productId = $request->input('product_id');
+    $quantity = max(1, (int) $request->input('quantity'));
+
+    $cart = session()->get('cart', []);
+
+    if (isset($cart[$productId])) {
+        $stock = isset($cart[$productId]['stock']) ? (int)$cart[$productId]['stock'] : 999999;
+        if ($quantity > $stock) {
+            return redirect()->route('cart.index')->with('error', 'Quantity exceeds available stock!');
+        }
+        $cart[$productId]['quantity'] = $quantity;
+        session()->put('cart', $cart);
+    }
+
+    return redirect()->route('cart.review');
+}
+}

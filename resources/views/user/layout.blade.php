@@ -1,0 +1,640 @@
+{{-- filepath: resources/views/user/layout.blade.php --}}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'AgriEcom User Dashboard')</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <link rel="icon" href="{{ asset('agri-icon.png') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+</head>
+<body class="bg-white min-h-screen flex flex-col text-green-900 font-sans">
+    <div id="mainContent" class="flex-1 flex flex-col min-h-screen transition-all duration-300 pt-28">
+        <!-- Header -->
+    <header class="bg-white shadow-md p-6 flex justify-between items-center fixed top-0 left-0 w-full z-30">
+            <nav class="w-full max-w-7xl mx-auto flex items-center justify-between" x-data="{ open: false }" role="navigation" aria-label="Main navigation">
+                <div class="flex items-center gap-3">
+                    <button class="md:hidden text-green-900" @click="open = !open" aria-label="Open navigation menu" tabindex="0">
+                        <i class="bi bi-list text-3xl"></i>
+                    </button>
+                    <h2 class="text-2xl font-extrabold tracking-wide flex items-center gap-2 text-green-900">
+                        <span class="flex items-center">
+                            <img src="{{ asset('image/logo.png') }}" alt="AgriEcom" class="w-14 h-14 md:w-16 md:h-16 inline-block mr-2">
+                            <span class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-green-700 to-lime-400 bg-clip-text text-transparent drop-shadow-lg tracking-wider" style="letter-spacing:0.04em;">AgriEcom</span>
+                        </span>
+                    </h2>
+                </div>
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center justify-between w-full" role="menubar">
+                    <div class="flex-1 flex justify-center space-x-4 lg:space-x-8 text-base font-semibold tracking-wide">
+                        <a href="{{ route('dashboard') }}"
+                            class="px-3 py-2 lg:px-4 lg:py-2 text-green-900 hover:bg-green-700 hover:text-white hover:scale-105 transition rounded flex items-center gap-2 {{ request()->routeIs('dashboard') ? 'bg-green-700 text-white' : '' }}" role="menuitem" tabindex="0">
+                            <i class="bi bi-house-door-fill"></i> <span class="hidden sm:inline">Home</span>
+                        </a>
+                        <a href="{{ route('user.profiles.index') }}"
+                            class="px-3 py-2 lg:px-4 lg:py-2 text-green-900 hover:bg-green-700 hover:text-white hover:scale-105 transition rounded flex items-center gap-2 {{ request()->routeIs('user.profiles.index') ? 'bg-green-700 text-white' : '' }}" role="menuitem" tabindex="0">
+                            <i class="bi bi-person-lines-fill"></i> <span class="hidden sm:inline">LSA</span>
+                        </a>
+                        <a href="{{ route('user.services.index') }}"
+                            class="px-3 py-2 lg:px-4 lg:py-2 text-green-900 hover:bg-green-700 hover:text-white hover:scale-105 transition rounded flex items-center gap-2 {{ request()->routeIs('user.services.index') ? 'bg-green-700 text-white' : '' }}" role="menuitem" tabindex="0">
+                            <i class="bi bi-gear-wide-connected"></i> <span class="hidden sm:inline">Training Services</span>
+                        </a>
+                        <a href="{{ route('user.products.index') }}"
+                            class="px-3 py-2 lg:px-4 lg:py-2 text-green-900 hover:bg-green-700 hover:text-white hover:scale-105 transition rounded flex items-center gap-2 {{ request()->routeIs('user.products.index') ? 'bg-green-700 text-white' : '' }}" role="menuitem" tabindex="0">
+                            <i class="bi bi-basket-fill"></i> <span class="hidden sm:inline">Products</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-2 lg:space-x-4">
+                                <!-- Widget -->
+<!-- Widget -->
+<!-- Widget -->
+<div x-data="{ showWidget: false }" class="relative">
+    <button title="Widgets" @click="showWidget = !showWidget; if(showWidget) { window.dispatchEvent(new CustomEvent('close-messages')); }" x-init="window.addEventListener('close-widgets', () => { showWidget = false; })" class="hover:text-green-700 transition">
+        <i class="bi bi-grid-3x3-gap-fill text-2xl"></i>
+    </button>
+    <div 
+        x-show="showWidget" 
+        @click.away="showWidget = false" 
+        @mouseleave="showWidget = false"
+        x-transition
+        class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border p-4 z-50 space-y-3"
+    >
+        <h3 class="font-semibold text-green-800 mb-2 flex items-center gap-2"   >
+            <i class="bi bi-grid-3x3-gap-fill"></i> Quick Widgets
+        </h3>
+       
+        <a href="{{ route('user.profiles.index') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-lime-100">
+            <i class="bi bi-person-lines-fill text-green-700"></i> LSA
+        </a>
+        <a href="{{ route('user.orders') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-lime-100">
+            <i class="bi bi-bag-check-fill text-blue-600"></i> My Purchase
+        </a>
+        <a href="{{ route('user.bookings.index') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-lime-100">
+            <i class="bi bi-calendar2-check-fill text-orange-500"></i> My Booking
+        </a>
+        <a href="{{ route('user.services.index') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-lime-100">
+            <i class="bi bi-gear-wide-connected text-gray-700"></i> Training Services
+        </a>
+        <a href="{{ route('user.products.index') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-lime-100">
+            <i class="bi bi-basket-fill text-green-700"></i> Products
+        </a>
+      
+     
+    </div>
+</div>
+{{-- Messenger-style Message Dropdown --}}
+@php
+    $userId = auth()->id();
+    // Eager load profile relationship for both sender and receiver so we can prefer profile data
+    $chats = \App\Models\Message::with(['sender.profile', 'receiver.profile'])
+        ->where(function($q) use ($userId) {
+            $q->where('receiver_id', $userId)
+              ->orWhere('sender_id', $userId);
+        })
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->unique(function($item) use ($userId) {
+            return $item->sender_id == $userId ? $item->receiver_id : $item->sender_id;
+        })
+        ->take(20)
+        ->values();
+
+    // Normalize display name and image (prefer profile values, fallback to users table)
+    $chats = $chats->map(function($msg) {
+        $senderProfile = $msg->sender->profile ?? null;
+        $receiverProfile = $msg->receiver->profile ?? null;
+
+        $senderName = '';
+        if ($senderProfile && !empty($senderProfile->farm_owner)) {
+            $senderName = $senderProfile->farm_owner;
+        } elseif (!empty($msg->sender->name)) {
+            $senderName = $msg->sender->name;
+        }
+
+        $receiverName = '';
+        if ($receiverProfile && !empty($receiverProfile->farm_owner)) {
+            $receiverName = $receiverProfile->farm_owner;
+        } elseif (!empty($msg->receiver->name)) {
+            $receiverName = $msg->receiver->name;
+        }
+
+        // profile photo field could be named profile_photo or profile_photo_path; handle common fallbacks
+        $senderImage = null;
+        if ($senderProfile) {
+            if (!empty($senderProfile->profile_photo)) $senderImage = $senderProfile->profile_photo;
+            elseif (!empty($senderProfile->profile_photo_path)) $senderImage = $senderProfile->profile_photo_path;
+        }
+        if (empty($senderImage) && !empty($msg->sender->photo)) $senderImage = $msg->sender->photo;
+
+        $receiverImage = null;
+        if ($receiverProfile) {
+            if (!empty($receiverProfile->profile_photo)) $receiverImage = $receiverProfile->profile_photo;
+            elseif (!empty($receiverProfile->profile_photo_path)) $receiverImage = $receiverProfile->profile_photo_path;
+        }
+        if (empty($receiverImage) && !empty($msg->receiver->photo)) $receiverImage = $msg->receiver->photo;
+
+        $msg->sender_name = $senderName;
+        $msg->sender_image = $senderImage;
+        $msg->receiver_name = $receiverName;
+        $msg->receiver_image = $receiverImage;
+
+        return $msg;
+    });
+
+    // Count unique senders with unread messages only (if all messages from a sender are read, do not count)
+    $unreadSenders = \App\Models\Message::where('receiver_id', $userId)
+        ->where('is_read', 0)
+        ->get()
+        ->groupBy('sender_id')
+        ->filter(function($msgs) {
+            return $msgs->where('is_read', 0)->count() > 0;
+        })
+        ->keys();
+    $unreadCount = $unreadSenders->count();
+@endphp
+<div class="relative" x-data="{
+    open: false,
+    chatTab: 'all',
+    searchChat: '',
+    chats: {{ Js::from($chats) }},
+    userId: null,
+    userName: '',
+    userPhoto: '',
+    messages: [],
+    message: '',
+    
+    imageFile: null,
+    poll: null,
+    minimized: false,
+    filteredChats() {
+        let filtered = this.chats;
+        if (this.searchChat.trim() !== '') {
+            filtered = filtered.filter(chat =>
+                (chat.sender_id == {{ $userId }} ? chat.receiver.name : chat.sender.name)
+                    .toLowerCase().includes(this.searchChat.toLowerCase())
+            );
+        }
+        if (this.chatTab === 'unread') {
+            filtered = filtered.filter(chat =>
+                chat.receiver_id == {{ $userId }} && chat.is_read == 0
+            );
+        }
+        return filtered;
+    },
+    openChat(id, name, photo) {
+        this.open = true;
+        this.userId = id;
+        this.userName = name;
+        // photo may already be a full path (/storage/...) or just filename; keep as-is
+        this.userPhoto = photo;
+        this.fetchMessages();
+        if(this.poll) clearInterval(this.poll);
+        this.poll = setInterval(() => this.fetchMessages(), 5000);
+    },
+    closeChat() {
+        this.open = false;
+        this.userId = null;
+        this.userName = '';
+        this.userPhoto = '';
+        this.messages = [];
+        this.message = '';
+        this.imageFile = null;
+        if(this.poll) clearInterval(this.poll);
+    },
+    fetchMessages() {
+        fetch('/messages/' + this.userId)
+            .then(res => res.json())
+            .then(data => {
+                this.messages = data;
+                this.$nextTick(() => {
+                    let box = document.getElementById('user-chat-messages');
+                    if(box) box.scrollTop = box.scrollHeight;
+                });
+            });
+    },
+    handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) this.imageFile = file;
+    },
+    sendLike() {
+        this.message = '👍';
+        this.sendMessage();
+    },
+    sendMessage() {
+        if (this.message.trim() !== '' || this.imageFile) {
+            const formData = new FormData();
+            formData.append('message', this.message);
+            if (this.imageFile) formData.append('image', this.imageFile);
+            fetch('/messages/' + this.userId, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: formData
+            }).then(() => {
+                this.message = '';
+                this.imageFile = null;
+                this.fetchMessages();
+            });
+        }
+    }
+}">
+    <button class="relative text-green-800 hover:text-green-600 transition" @click="open = !open" x-init="window.addEventListener('close-messages', () => { open = false; }); window.addEventListener('close-widgets', () => { open = false; })" aria-label="Open chat messages">
+        <span class="relative inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-50 hover:bg-green-100 transition">
+            <i class="bi bi-chat-dots-fill text-green-700 text-xl"></i>
+            @if($unreadCount > 0)
+                <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold shadow">
+                    {{ $unreadCount }}
+                </span>
+            @endif
+        </span>
+    </button>
+    <div x-show="open" x-transition class="dropdown-anim absolute right-0 left-auto mt-2 w-80 bg-white border rounded-2xl shadow-2xl z-50 max-h-[40rem] overflow-auto p-0" @keydown.escape.window="open = false">
+        <div class="p-4 border-b bg-gradient-to-r from-green-50 to-white rounded-t-2xl">
+            <div class="text-lg font-bold text-green-800 mb-2 flex items-center gap-2">
+                <i class="bi bi-chat-dots text-green-600"></i> Chats
+            </div>
+            <div class="relative mb-2">
+                <input 
+                    type="text"
+                    x-model="searchChat"
+                    placeholder="Search by name..."
+                    class="w-full px-4 py-2 border border-green-200 rounded-full text-sm focus:ring-2 focus:ring-green-400 bg-gray-50 placeholder-gray-400"
+                >
+                <i class="bi bi-search absolute right-3 top-1/2 -translate-y-1/2 text-green-400"></i>
+            </div>
+            <div class="flex gap-2 mt-1">
+                <button type="button" @click="chatTab = 'all'" 
+                    :class="chatTab === 'all' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'"
+                    class="px-3 py-1 rounded-full text-xs font-semibold transition">All</button>
+                <button type="button" @click="chatTab = 'unread'" 
+                    :class="chatTab === 'unread' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'"
+                    class="px-3 py-1 rounded-full text-xs font-semibold transition">Unread</button>
+            </div>
+        </div>
+        <div class="divide-y">
+            <template x-for="msg in filteredChats()" :key="msg.id">
+                <a href="#"
+                   @click.prevent="openChat(
+                        msg.sender_id == {{ $userId }} ? msg.receiver.id : msg.sender.id,
+                        msg.sender_id == {{ $userId }} ? msg.receiver_name : msg.sender_name,
+                        msg.sender_id == {{ $userId }} ? ('/storage/' + (msg.receiver_image || 'default.png')) : ('/storage/' + (msg.sender_image || 'default.png'))
+                    )"
+                   class="flex items-center gap-3 px-4 py-3 hover:bg-green-50 text-sm cursor-pointer group transition">
+                        <div class="relative">
+                        <img :src="(msg.sender_id == {{ $userId }} ? ('/storage/' + (msg.receiver_image || 'default.png')) : ('/storage/' + (msg.sender_image || 'default.png')))" alt="Profile" class="w-11 h-11 rounded-full object-cover border-2 border-green-100 group-hover:border-green-400 transition">
+                        <template x-if="msg.is_read == 0 && msg.receiver_id == {{ $userId }}">
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                        </template>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div :class="msg.is_read == 0 && msg.receiver_id == {{ $userId }} ? 'font-bold text-green-800' : 'font-normal'" class="truncate text-base" x-text="msg.sender_id == {{ $userId }} ? msg.receiver_name : msg.sender_name"></div>
+                        <div :class="msg.is_read == 0 && msg.receiver_id == {{ $userId }} ? 'font-semibold text-green-700' : 'font-normal text-gray-600'" class="truncate text-xs mt-0.5" x-text="msg.message.split(' ').slice(0,9).join(' ') + (msg.message.split(' ').length > 9 ? '...' : '')"></div>
+                    </div>
+                    <div class="flex flex-col items-end ml-2">
+                        <span class="text-xs text-gray-400 whitespace-nowrap" x-text="window.dayjs ? window.dayjs(msg.created_at).fromNow() : msg.created_at"></span>
+                        <span class="text-[10px] text-gray-300" x-text="window.dayjs ? window.dayjs(msg.created_at).format('MMM D, YYYY h:mm A') : msg.created_at"></span>
+                    </div>
+                </a>
+            </template>
+            <div x-show="filteredChats().length == 0" class="px-4 py-8 text-gray-400 text-sm text-center">No new messages</div>
+        </div>
+        <div class="text-center mt-2 border-t bg-gray-50 rounded-b-2xl">
+            <a href="#" class="text-green-600 hover:underline text-sm py-3 block font-semibold transition">View all messages</a>
+        </div>
+    </div>
+    <!-- User Chatbox Modal -->
+    <div 
+        x-show="open && userId"
+        x-transition
+        :style="minimized 
+            ? 'width:3rem;height:3rem;padding:2;overflow:hidden;right:2rem;bottom:2rem;' 
+            : 'width:22rem;height:26rem;right:5rem;bottom:0rem;'
+        "
+        class="fixed bg-white border border-gray-300 rounded-full shadow-lg z-50"
+        id="user-chatbox"
+        style="display:none;"
+        @keydown.escape.window="closeChat()"
+    >
+        <!-- Minimized State -->
+        <template x-if="minimized">
+            <div class="flex items-center justify-center h-full w-full cursor-pointer" @click="minimized = false">
+                <img :src="userPhoto ? userPhoto : '/storage/default.png'" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-green-600">
+            </div>
+        </template>
+        <!-- Expanded State -->
+        <template x-if="!minimized">
+            <div class="flex flex-col h-full w-full rounded-xl overflow-hidden bg-white">
+                <!-- Header -->
+                <div class="flex items-center justify-between bg-green-600 text-white px-4 py-2 relative">
+            <div class="flex items-center gap-2">
+                <img :src="userPhoto ? userPhoto : '/storage/default.png'" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-white">
+                <span x-text="userName"></span>
+                        <!-- Dropdown Trigger -->
+                        <div x-data="{ showDropdown: false }" class="relative">
+                            <button @click="showDropdown = !showDropdown" class="ml-2 focus:outline-none">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div x-show="showDropdown" @click.away="showDropdown = false" x-transition
+                                class="absolute left-0 mt-2 w-44 bg-white text-gray-800 rounded shadow-lg z-50">
+                                <a :href="'/user/profiles/' + userId" class="block px-4 py-2 hover:bg-green-100 text-sm">
+                                    <i class="bi bi-person-circle"></i> View Profile
+                                </a>
+                                <form method="POST" action="#">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-green-100 text-sm text-red-600">
+                                        <i class="bi bi-trash"></i> Delete Conversation
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="minimized = true" class="text-white text-xl leading-none" title="Minimize">
+                            <i class="bi bi-dash-square"></i>
+                        </button>
+                        <button @click="closeChat()" class="text-white text-2xl leading-none">&times;</button>
+                    </div>
+                </div>
+                <!-- Messages (scrollable only) -->
+                <div class="flex-1 overflow-y-auto p-4 bg-gray-50" id="user-chat-messages">
+                    <template x-for="msg in messages" :key="msg.id">
+                        <div :class="msg.sender_id == {{ $userId }} ? 'text-right' : 'text-left'" class="my-2">
+                            <div :class="msg.sender_id == {{ $userId }} ? 'inline-block bg-green-100 text-green-800' : 'inline-block bg-gray-100 text-gray-800'"
+                                class="rounded-lg px-3 py-2 max-w-xs"
+                                style="word-break:break-word;">
+                                <template x-if="msg.image">
+                                    <img 
+                                        :src="msg.image.startsWith('http') ? msg.image : ('/storage/' + msg.image)" 
+                                        class="max-w-[120px] rounded mb-2"
+                                        style="display:block;margin-left:auto;margin-right:auto;"
+                                    />
+                                </template>
+                                <template x-if="msg.message">   
+                                    <div class="block w-full">
+                                        <span x-text="msg.message"></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">
+                                <span x-text="new Date(msg.created_at).toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="messages.length == 0" class="text-gray-400 text-center text-xs mt-10">No messages yet.</div>
+                </div>
+                <!-- Input Area (fixed at the bottom, always visible) -->
+                <form @submit.prevent="sendMessage()" class="border-t px-2 py-3 bg-white sticky bottom-0 z-10">
+                    <div class="flex items-end gap-2 w-full">
+                        <!-- Image Upload -->
+                        <label class="cursor-pointer flex-shrink-0">
+                            <i class="bi bi-image text-2xl text-green-700"></i>
+                            <input type="file" accept="image/*" class="hidden" @change="handleImageUpload">
+                        </label>
+
+                        <!-- Image Preview -->
+                        <template x-if="imageFile">
+                            <img :src="URL.createObjectURL(imageFile)" class="max-w-[80px] max-h-[90px] rounded border flex-shrink-0" />
+                        </template>
+
+                        <!-- Textarea Input with Emoji Icon -->
+                        <div class="relative flex-1" x-data="{ showEmoji: false }">
+<textarea 
+    x-model="message"
+    id="chat-message-textarea"
+    rows="1"
+    class="w-full border border-gray-300 text-base rounded-full px-4 py-1 focus:ring-2 focus:ring-green-400 bg-gray-50 pr-10"
+    placeholder="Type a message..."
+    style="min-height: 40px; max-height: 80px; overflow-y: auto;"
+    @keydown.enter.prevent="if (!$event.shiftKey) sendMessage()"
+></textarea>
+
+                            <!-- Emoji icon -->
+                            <button type="button" 
+                                class="absolute right-2 top-2 text-xl text-green-600"
+                                title="Insert Emoji"
+                                @click="showEmoji = !showEmoji">
+                                😊
+                            </button>
+
+                            <!-- Emoji Picker Above the Icon -->
+                            <div 
+                                x-show="showEmoji" 
+                                @click.away="showEmoji = false" 
+                                class="absolute bottom-full mb-2 right-0 z-50 bg-white shadow-lg border rounded"
+                            >
+                                <emoji-picker></emoji-picker>
+                            </div>
+                        </div>
+
+                        <!-- Like or Send Button -->
+                        <template x-if="!message.trim()">
+                            <button type="button" 
+                                @click="sendLike()" 
+                                class="text-green-600 text-2xl px-2 flex-shrink-0 active:scale-225 transition-transform duration-150" 
+                                title="Send Like">
+                                <i class="bi bi-hand-thumbs-up-fill"></i>
+                            </button>
+                        </template>
+                        <template x-if="message.trim()">
+                            <button type="submit" 
+                                class="ml-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-lg flex items-center justify-center flex-shrink-0" 
+                                title="Send">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </template>
+                    </div>
+                </form>
+            </div>
+        </template>
+    </div>
+</div>
+{{-- Notification --}}
+<div x-data="{ openNotif: false }" class="relative">
+    <button title="Notifications" @click="openNotif = !openNotif; if(openNotif) { window.dispatchEvent(new CustomEvent('close-messages')); window.dispatchEvent(new CustomEvent('close-widgets')); } if(!openNotif) return; fetch('{{ route('notifications.read') }}', {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}'}})" class="hover:text-green-700 transition relative" aria-label="Open notifications">
+        <i class="bi bi-bell-fill text-2xl"></i>
+        @if(auth()->user()->unreadNotifications->count() > 0)
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full px-1 text-xs">
+                {{ auth()->user()->unreadNotifications->count() }}
+            </span>
+        @endif
+    </button>
+        <div 
+            x-show="openNotif" 
+            @click.away="openNotif = false" 
+            x-transition
+            class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border p-4 z-50"
+            style="max-height:80vh; overflow-y:auto;"
+        >
+        <h3 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+            <i class="bi bi-bell-fill"></i> Notifications
+        </h3>
+        @php
+            $today = \Carbon\Carbon::today();
+            $todayNotifications = auth()->user()->notifications->filter(function($n) use ($today) {
+                return \Carbon\Carbon::parse($n->created_at)->isSameDay($today);
+            });
+            $earlierNotifications = auth()->user()->notifications->filter(function($n) use ($today) {
+                return !\Carbon\Carbon::parse($n->created_at)->isSameDay($today);
+            });
+        @endphp
+    <div>
+            <div class="text-xs font-bold text-green-700 mb-1">Today</div>
+            <ul class="space-y-2">
+                @forelse($todayNotifications as $notification)
+                    @if(isset($notification->data['booking_id']))
+                        <li class="p-3 bg-gray-50 rounded border-l-4 cursor-pointer
+                            @if($notification->read_at) border-gray-300 @else border-green-500 @endif
+                            hover:bg-green-100 transition"
+                            @click="window.location='{{ route('user.bookings.show', $notification->data['booking_id']) }}'"
+                        >
+                            <div class="flex items-center gap-2 mb-1">
+                                @if(!empty($notification->data['admin_image']))
+                                    <img src="{{ asset('storage/' . $notification->data['admin_image']) }}" class="w-6 h-6 rounded-full" alt="Farm Owner">
+                                @endif
+                                <span class="font-semibold">{{ $notification->data['admin_name'] ?? 'Farm Owner' }}</span>
+                                <span class="ml-2 text-xs text-gray-500">Booking Update</span>
+                            </div>
+                            <div>
+                                {{ $notification->data['message'] ?? 'No message.' }}
+                                <span class="block text-xs text-gray-500 mt-1">
+                                    {{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}
+                                </span>
+                            </div>
+                        </li>
+                    @elseif(isset($notification->data['order_id']))
+                        <li class="p-3 bg-gray-50 rounded border-l-4 cursor-pointer
+                            @if($notification->read_at) border-gray-300 @else border-green-500 @endif
+                            hover:bg-green-100 transition"
+                            @click="window.location='{{ route('user.orders.show', $notification->data['order_id']) }}'"
+                        >
+                            <div class="flex items-center gap-2 mb-1">
+                                @if(!empty($notification->data['admin_image']))
+                                    <img src="{{ asset('storage/' . $notification->data['admin_image']) }}" class="w-6 h-6 rounded-full" alt="Farm Owner">
+                                @else
+                                    <i class="bi bi-person-circle text-xl text-green-700"></i>
+                                @endif
+                                <span class="font-semibold">{{ $notification->data['admin_name'] ?? 'Farm Owner' }}</span>
+                                <span class="ml-2 text-xs text-gray-500">Order Update</span>
+                            </div>
+                            <div>
+                                {{ $notification->data['message'] ?? 'No message.' }}
+                                <span class="block text-xs text-gray-500 mt-1">
+                                    {{ \Carbon\Carbon::parse($notification->data['updated_at'] ?? $notification->created_at)->diffForHumans() }}
+                            </span>
+                            </div>
+                        </li>
+                    @endif
+                @empty
+                    <li class="text-gray-400 text-sm">No notifications today.</li>
+                @endforelse
+            </ul>
+            <div class="text-xs font-bold text-green-700 mt-3 mb-1">Earlier</div>
+            <ul class="space-y-2">
+                @forelse($earlierNotifications as $notification)
+                    @if(isset($notification->data['booking_id']))
+                        <li class="p-3 bg-gray-50 rounded border-l-4 cursor-pointer
+                            @if($notification->read_at) border-gray-300 @else border-green-500 @endif
+                            hover:bg-green-100 transition"
+                            @click="window.location='{{ route('user.bookings.show', $notification->data['booking_id']) }}'"
+                        >
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="bi bi-calendar2-check-fill text-xl text-orange-500"></i>
+                                <span class="font-semibold">Booking Update</span>
+                            </div>
+                            <div>
+                                {{ $notification->data['message'] ?? 'No message.' }}
+                                <span class="block text-xs text-gray-500 mt-1">
+                                    {{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}
+                                </span>
+                            </div>
+                        </li>
+                    @else
+                        <li class="p-3 bg-gray-50 rounded border-l-4 cursor-pointer
+                            @if($notification->read_at) border-gray-300 @else border-green-500 @endif
+                            hover:bg-green-100 transition"
+                            @click="window.location='{{ route('user.orders.show', $notification->data['order_id']) }}'"
+                        >
+                            <div class="flex items-center gap-2 mb-1">
+                                @if(!empty($notification->data['admin_image']))
+                                    <img src="{{ asset('storage/' . $notification->data['admin_image']) }}" class="w-6 h-6 rounded-full" alt="Farm Owner">
+                                @else
+                                    <i class="bi bi-person-circle text-xl text-green-700"></i>
+                                @endif
+                                <span class="font-semibold">{{ $notification->data['admin_name'] ?? 'Farm Owner' }}</span>
+                            </div>
+                            <div>
+                                {{ $notification->data['message'] ?? 'No message.' }}
+                                <span class="block text-xs text-gray-500 mt-1">
+                                    {{ \Carbon\Carbon::parse($notification->data['updated_at'] ?? $notification->created_at)->diffForHumans() }}
+                            </span>
+                            </div>
+                        </li>
+                    @endif
+                @empty
+                    <li class="text-gray-400 text-sm">No earlier notifications.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Profile Dropdown -->
+<div class="relative" x-data="{ dropdown: false }">
+    <div class="relative">
+        <button @click="dropdown = !dropdown" class="focus:outline-none" aria-label="Open profile menu">
+            <span class="relative inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-50 hover:bg-green-100 border-2 border-green-200 shadow transition overflow-hidden">
+                @php
+                    $profilePhoto = Auth::user()->photo ?? null;
+                @endphp
+                @if($profilePhoto)
+                    <img src="{{ asset('storage/' . ltrim($profilePhoto, '/')) }}" alt="Profile" class="w-full h-full object-cover rounded-full">
+                @else
+                    <i class="bi bi-person-circle text-green-600 text-2xl"></i>
+                @endif
+            </span>
+        </button>
+        <div x-show="dropdown" @click.away="dropdown = false" @mouseleave="dropdown = false" x-transition class="dropdown-anim absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+            <div class="p-4 border-b bg-gradient-to-r from-green-50 to-white rounded-t-2xl flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-green-200 mb-2 shadow">
+                    @if($profilePhoto)
+                        <img src="{{ asset('storage/' . ltrim($profilePhoto, '/')) }}" alt="Profile" class="w-full h-full object-cover rounded-full">
+                    @else
+                        <i class="bi bi-person-circle text-green-600 text-4xl flex items-center justify-center w-full h-full"></i>
+                    @endif
+                </div>
+                <div class="font-bold text-green-900 text-base text-center w-full truncate">{{ Auth::user()->name }}</div>
+                <div class="text-xs text-gray-500 text-center w-full truncate">{{ Auth::user()->email }}</div>
+            </div>
+            <div class="flex flex-col py-2">
+                <a href="{{ route('user.myprofile') }}" class="px-4 py-2 hover:bg-green-50 text-green-800 font-medium transition rounded-t">My Account</a>
+                <a href="{{ route('settings.password.edit') }}" class="px-4 py-2 hover:bg-green-50 text-green-800 font-medium transition">Update Password</a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-medium transition rounded-b">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+ </header>
+     <!-- Main Content -->
+    <main class="flex-grow bg-white p-0">
+            @yield('content')
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('scripts')
+    @yield('scripts')
+
+</body>
+</html>
